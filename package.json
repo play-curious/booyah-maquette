@@ -1,0 +1,8 @@
+{
+  "name": "booyah-maquette",
+  "version": "0.0.1",
+  "description": "Helper library for using Maquette with Booyah",
+  "main": "src/index.ts",
+  "author": "Jesse Himmelstein",
+  "license": "MIT"
+}
