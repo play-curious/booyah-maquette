@@ -2,75 +2,87 @@ import * as maquette from "maquette";
 
 import * as chip from "booyah/src/chip";
 
-export type RenderFunction = () => maquette.VNode;
-export type DomComponentChild =
-  | maquette.VNodeChild
-  | DomComponent
-  | RenderFunction;
+export type RenderFunction = () => maquette.VNode[];
 
-export class DomComponentOptions {
-  selector: string = "span";
-  properties: maquette.VNodeProperties = {};
-  children: DomComponentChild[] = [];
+export type Renderable = {
+  render: RenderFunction;
+};
+
+export class RenderableFunctionWrapper implements Renderable {
+  constructor(private readonly _renderFunction: RenderFunction) {}
+
+  render(): maquette.VNode[] {
+    return this._renderFunction();
+  }
 }
 
-export class DomComponent {
-  private _options: DomComponentOptions;
+export class RenderableSet implements Renderable {
+  private _children: Renderable[] = [];
 
-  constructor(options?: Partial<DomComponentOptions>) {
-    this._options = chip.fillInOptions(options, new DomComponentOptions());
+  addChild(child: Renderable): void {
+    if (this.hasChild(child)) throw new Error("Already contains child");
+
+    this._children.push(child);
   }
 
-  render(): maquette.VNode {
-    const renderedChildren = this._options.children.map((child) => {
-      if (child instanceof DomComponent) return child.render();
-      else if (typeof child === "function") return child();
-      else return child;
-    });
-    return maquette.h(
-      this._options.selector,
-      this._options.properties,
-      renderedChildren
-    );
-  }
-
-  addChild(child: maquette.VNodeChild): void {
-    this._options.children.push(child);
-  }
-
-  removeChild(child: maquette.VNodeChild): void {
-    const index = this._options.children.indexOf(child);
+  removeChild(child: Renderable): void {
+    const index = this._children.indexOf(child);
     if (index === -1) throw new Error("Cannot find child to remove");
 
-    this._options.children.splice(index);
+    this._children.splice(index);
+  }
+
+  hasChild(child: Renderable): boolean {
+    return this._children.includes(child);
+  }
+
+  render(): maquette.VNode[] {
+    return this._children.flatMap((child) => child.render());
   }
 }
 
-export class DomChip extends chip.ChipBase {
-  constructor(private readonly _component: DomComponent) {
+export class RenderableChip extends chip.ChipBase {
+  constructor(private readonly _renderable: Renderable) {
     super();
   }
 
   protected _onActivate() {
-    this._chipContext.domComponent.addChild(this._component);
+    this._chipContext.renderableSet.addChild(this._renderable);
   }
 
   protected _onTerminate() {
-    this._chipContext.domComponent.removeChild(this._component);
+    this._chipContext.renderableSet.removeChild(this._renderable);
   }
 }
 
+class ProjectorOptions {
+  selector = "div";
+  properties: maquette.VNodeProperties = {};
+  contextKey = "renderableSet";
+}
+
 export class Projector extends chip.ChipBase {
+  private _options: ProjectorOptions;
   private _projector?: maquette.Projector;
   private _renderFunction?: () => maquette.VNode;
 
-  constructor(private readonly _parentNode: Element) {
+  constructor(
+    private readonly _parentNode: Element,
+    options?: Partial<ProjectorOptions>
+  ) {
     super();
+
+    this._options = chip.fillInOptions(options, new ProjectorOptions());
   }
 
   protected _onActivate(): void {
     this._projector = maquette.createProjector();
-    this._renderFunction = () => this.chipContext.domComponent.render();
+    this._renderFunction = () =>
+      maquette.h(
+        this._options.selector,
+        this._options.properties,
+        this.chipContext[this._options.contextKey].render()
+      );
     this._projector.append(this._parentNode, this._renderFunction);
   }
 
