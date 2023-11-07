@@ -29,7 +29,7 @@ export class RenderableSet implements Renderable {
     const index = this._children.indexOf(child);
     if (index === -1) throw new Error("Cannot find child to remove");
 
-    this._children.splice(index);
+    this._children.splice(index, 1);
   }
 
   hasChild(child: Renderable): boolean {
