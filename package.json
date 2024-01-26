@@ -2,7 +2,14 @@
   "name": "booyah-maquette",
   "version": "0.0.2",
   "description": "Helper library for using Maquette with Booyah",
-  "main": "src/index.ts",
   "author": "Jesse Himmelstein",
-  "license": "MIT"
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "typescript": "^5.3.3"
+  }
 }
