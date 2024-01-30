@@ -2,21 +2,29 @@ import * as maquette from "maquette";
 
 import * as chip from "booyah/src/chip";
 
-export type RenderFunction = () => maquette.VNode[];
+export type RenderResult = maquette.VNode[];
 
-export type Renderable = {
+export type RenderFunction = () => RenderResult;
+
+export interface RenderableObject {
   render: RenderFunction;
-};
-
-export class RenderableFunctionWrapper implements Renderable {
-  constructor(private readonly _renderFunction: RenderFunction) {}
-
-  render(): maquette.VNode[] {
-    return this._renderFunction();
-  }
 }
 
-export class RenderableSet implements Renderable {
+export type Renderable = RenderResult | RenderFunction | RenderableObject;
+
+function isRenderableObject(
+  renderable: Renderable
+): renderable is RenderableObject {
+  return typeof (renderable as any).render === "function";
+}
+
+export function resolveRenderable(renderable: Renderable): RenderResult {
+  if (typeof renderable === "function") return renderable();
+  if (isRenderableObject(renderable)) return renderable.render();
+  return renderable;
+}
+
+export class RenderableSet implements RenderableObject {
   private _children: Renderable[] = [];
 
   addChild(child: Renderable): void {
@@ -37,7 +45,7 @@ export class RenderableSet implements Renderable {
   }
 
   render(): maquette.VNode[] {
-    return this._children.flatMap((child) => child.render());
+    return this._children.flatMap(resolveRenderable);
   }
 }
 
