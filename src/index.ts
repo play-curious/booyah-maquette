@@ -1,6 +1,6 @@
 import * as maquette from "maquette";
 
-import * as chip from "booyah/src/chip";
+import * as chip from "booyah/dist/chip";
 
 export type RenderResult = maquette.VNode[];
 
