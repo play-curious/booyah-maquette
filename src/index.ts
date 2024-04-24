@@ -1,4 +1,5 @@
 import * as maquette from "maquette";
+import * as advancedProjector from "maquette-advanced-projector";
 
 import * as chip from "booyah/dist/chip";
 
@@ -84,7 +85,21 @@ export class Projector extends chip.ChipBase {
   }
 
   protected _onActivate(): void {
-    this._projector = maquette.createProjector();
+    this._projector = advancedProjector.createAdvancedProjector({
+      handleInterceptedEvent: (
+        projector: advancedProjector.AdvancedProjector,
+        vNode: maquette.VNode,
+        node: Node,
+        evt: Event
+      ) => {
+        // Don't call scheduleRender()
+
+        return vNode.properties![`on${evt.type}`].apply(
+          vNode.properties!.bind || node,
+          [evt]
+        );
+      },
+    });
     this._renderFunction = () =>
       maquette.h(
         this._options.selector,
