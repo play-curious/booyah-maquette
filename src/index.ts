@@ -74,6 +74,7 @@ export class Projector extends chip.ChipBase {
   private _options: ProjectorOptions;
   private _projector?: maquette.Projector;
   private _renderFunction?: () => maquette.VNode;
+  private _lastEvents: Set<string>;
 
   constructor(
     private readonly _parentNode: Element,
@@ -82,6 +83,7 @@ export class Projector extends chip.ChipBase {
     super();
 
     this._options = chip.fillInOptions(options, new ProjectorOptions());
+    this._lastEvents = new Set();
   }
 
   protected _onActivate(): void {
@@ -93,6 +95,10 @@ export class Projector extends chip.ChipBase {
         evt: Event
       ) => {
         // Don't call scheduleRender()
+
+        if (this._lastEvents.has(evt.type)) return;
+
+        this._lastEvents.add(evt.type);
 
         return vNode.properties![`on${evt.type}`].apply(
           vNode.properties!.bind || node,
@@ -116,6 +122,8 @@ export class Projector extends chip.ChipBase {
   }
 
   protected _onTick(): void {
+    this._lastEvents.clear();
+
     this._projector!.scheduleRender();
   }
 }
