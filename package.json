@@ -14,6 +14,7 @@
   },
   "peerDependencies": {
     "booyah": "^3.1.0",
-    "maquette": "^4.0.2"
+    "maquette": "^4.0.2",
+    "@play-curious/maquette-advanced-projector": "^1.0.4"
   }
 }
