@@ -1,5 +1,5 @@
 import * as maquette from "maquette";
-import * as advancedProjector from "maquette-advanced-projector";
+import * as advancedProjector from "@play-curious/maquette-advanced-projector";
 
 import * as chip from "booyah/dist/chip";
 
